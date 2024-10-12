@@ -45,7 +45,7 @@ Before running the bot, you need to have the following:
 
 1. **Run the bot**:
    ```bash
-   python bot.py
+   python Translate-bot-v1.py
    ```
 
    When the bot starts, it will listen to the configured source channels and will handle new messages accordingly.
@@ -56,7 +56,7 @@ Before running the bot, you need to have the following:
 - **Source Channels**: The channels from which messages are fetched are defined in the `channel_groups` dictionary. Each group is represented as a key (e.g., `group1`) and the list of source channels for that group.
   ```python
   channel_groups = {
-      'group1': ['testpublish1', 'source_channel_2'],
+      'group1': ['source_channel_1', 'source_channel_2'],
       'group2': ['source_channel_3', 'source_channel_4'],
       'group3': ['source_channel_5', 'source_channel_6']
   }
@@ -64,7 +64,7 @@ Before running the bot, you need to have the following:
 - **Target Channels**: The target channels to which messages are posted are defined in the `target_channels` dictionary.
   ```python
   target_channels = {
-      'group1': 'testpublish1',
+      'group1': 'target_channel_1',
       'group2': 'target_channel_2',
       'group3': 'target_channel_3'
   }
@@ -100,7 +100,7 @@ Before running the bot, you need to have the following:
 - **Main Function**: The bot starts by calling the `main()` function, which initializes the Telegram client, starts the event handlers, and runs until the bot is disconnected.
 - To run the bot:
   ```bash
-  python bot.py
+  python Translate-bot-v1.py
   ```
 
 ## Notes 🗒️
