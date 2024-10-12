@@ -1,0 +1,3 @@
+api_id = 'ENTER API ID'
+api_hash = 'ENTER API HASH'
+phone_number = 'ENTER PHONE NUMBER WITH COUNTRY CODE'
