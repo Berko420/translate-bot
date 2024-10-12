@@ -114,4 +114,4 @@ This project is licensed under the MIT License. See the LICENSE file for more de
 If you'd like to contribute, please fork the repository and use a feature branch. Pull requests are welcome.
 
 ## Contact 📧
-For any questions or issues, please open an issue on GitHub or contact me at [your_email@example.com].
+For any questions or issues, please open an issue on GitHub or contact me at [Barakshabo@gmail.com].
