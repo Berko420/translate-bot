@@ -5,16 +5,12 @@ from googletrans import Translator
 from datetime import datetime, timezone, timedelta
 import asyncio
 from config import api_id, api_hash, phone_number
-import time
-
-# Create 'log' directory if it doesn't exist
-if not os.path.exists('log'):
-    os.makedirs('log')
 
 # Set up logging to log both to a file and print to the console
 log_file = os.path.join('log', 'error_log.txt')
-logging.basicConfig(filename=log_file, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')  # Log info and errors to a file with timestamp
-logging.getLogger().addHandler(logging.StreamHandler())  # Print errors to terminal
+os.makedirs('log', exist_ok=True)
+logging.basicConfig(filename=log_file, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.getLogger().addHandler(logging.StreamHandler())
 
 # Create a Telegram bot object
 client = TelegramClient('bot_session', api_id, api_hash)
@@ -22,11 +18,11 @@ client = TelegramClient('bot_session', api_id, api_hash)
 # Create a translation object to use Google Translate API
 translator = Translator()
 
-# Load filtered words from external txt file (words to be removed from messages)
-filtered_words = []
+# Load filtered words/phrases from external txt file (words or phrases to be removed from messages)
+filtered_phrases = []
 if os.path.exists('filtered_words.txt'):
     with open('filtered_words.txt', 'r') as file:
-        filtered_words = [line.strip() for line in file.readlines()]
+        filtered_phrases = [line.strip().replace('"', '') for line in file.readlines()]
 
 # Source channels from which messages are fetched, categorized by groups
 channel_groups = {
@@ -43,11 +39,10 @@ target_channels = {
 }
 
 # Load the target language from an external txt file (default is English)
+target_language = 'en'
 if os.path.exists('target_language.txt'):
     with open('target_language.txt', 'r') as file:
         target_language = file.read().strip()
-else:
-    target_language = 'en'  # Default to English if not specified
 
 # Labels for translated messages
 labels = {
@@ -59,6 +54,15 @@ labels = {
 # Statistics dictionary to track the number of messages processed from each channel group
 statistics = {key: 0 for key in channel_groups.keys()}
 
+# Function to check if message contains filtered words/phrases
+def should_filter_message(message):
+    if not message:
+        return False
+    for phrase in filtered_phrases:
+        if phrase in message:
+            return True
+    return False
+
 # Function to handle incoming messages, translate, and post to target channel
 async def handle_event(event, target_channel, translate=True, target_lang=None):
     retries = 3  # Number of retries in case of failure
@@ -68,11 +72,10 @@ async def handle_event(event, target_channel, translate=True, target_lang=None):
             channel_name = event.chat.title if event.chat else "Unknown channel"
             channel_username = f"@{event.chat.username}" if event.chat.username else "Unknown"
 
-            # Clean message by removing URLs, @usernames, and filtered words
-            if message:
-                message = '\n'.join([line for line in message.splitlines() if not line.startswith(('filetword', 'filterword2'))])
-                for word in filtered_words:
-                    message = message.replace(word, '')
+            # Check if message should be filtered
+            if message and should_filter_message(message):
+                logging.info(f"Message from {channel_name} ({channel_username}) was filtered and not sent.")
+                return
 
             # Translate the message and channel name to the target language if translation is enabled
             translated_message = message
@@ -82,10 +85,10 @@ async def handle_event(event, target_channel, translate=True, target_lang=None):
                 try:
                     if message:
                         translation_result = translator.translate(message, dest=target_lang or target_language)
-                        translated_message = translation_result.text if translation_result and translation_result.text else None
+                        translated_message = translation_result.text if translation_result and hasattr(translation_result, 'text') else None
 
                     channel_translation_result = translator.translate(channel_name, dest=target_lang or target_language)
-                    translated_channel_name = channel_translation_result.text if channel_translation_result and channel_translation_result.text else channel_name
+                    translated_channel_name = channel_translation_result.text if channel_translation_result and hasattr(channel_translation_result, 'text') else channel_name
 
                 except Exception as e:
                     translated_message = f"⚠️ Error in translation: {str(e)}"
